@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * SkillProof theme tokens.
+ * The app runs on a dark navy canvas (#0B1F3A) with teal accents (#12B5A5).
+ * HSL values below are the shadcn/ui design tokens mapped to that palette.
+ */
+@layer base {
+  :root {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --background: 214 68% 14%; /* #0B1F3A */
+    --foreground: 0 0% 100%;
+
+    --card: 214 60% 17%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 214 62% 15%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 174 82% 39%; /* #12B5A5 */
+    --primary-foreground: 214 68% 10%;
+
+    --secondary: 214 45% 24%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 214 40% 22%;
+    --muted-foreground: 213 25% 72%;
+
+    --accent: 174 60% 26%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%; /* #EF4444 */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%; /* #22C55E */
+    --success-foreground: 214 68% 10%;
+
+    --warning: 38 92% 50%; /* #F59E0B */
+    --warning-foreground: 214 68% 10%;
+
+    /* Elevated card surface (#0F2A4C) for nested content panels. */
+    --elevated: 213 67% 18%;
+
+    --border: 214 38% 28%;
+    --input: 214 38% 26%;
+    --ring: 174 82% 39%;
+
+    --radius: 0.9rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* Subtle radial glow used behind hero sections. */
+  .bg-hero-glow {
+    background-image:
+      radial-gradient(60% 60% at 15% 0%, rgba(18, 181, 165, 0.18) 0%, transparent 60%),
+      radial-gradient(50% 50% at 100% 0%, rgba(46, 102, 190, 0.22) 0%, transparent 55%);
+  }
+  .text-gradient {
+    background: linear-gradient(90deg, #ffffff 0%, #2fd4c3 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Thin, on-brand scrollbar for generation panels. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(18, 181, 165, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(18, 181, 165, 0.55);
+}
