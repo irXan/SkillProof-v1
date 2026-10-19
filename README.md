@@ -404,3 +404,26 @@ Run these to confirm everything works locally:
 - [x] Feedback buttons and **Clear draft** work; a refresh preserves the draft.
 - [x] Demo flow: **/ → Try Demo → /generate → /portfolio** works end to end
       without an account or AI key.
+
+
+
+PROMPT:
+Project: SkillProof MVP — Next.js 14 App Router + TS, Tailwind, shadcn/ui, Supabase, Vercel AI SDK.
+Repo: C:\Users\pc\Desktop\SkillProof-v1 — remote origin https://github.com/irXan/SkillProof-v1.git, branch main, in sync.
+Pushed: 2dafc70 = Stage 0-2 portfolio layer (all green: typecheck/lint/build, 10 routes).
+LOCAL-ONLY (untracked, do not re-create, just verify+push): 
+  - src/app/(app)/dashboard/portfolio/[id]/edit/page.tsx  (portfolio editor: 2-col desktop edit|preview, mobile tabs, Basics/Links/Skills&Services/Projects/Appearance/Sections cards, publish via savePortfolioSite with guest editToken, valueRef guard so autosave doesn't clobber typing, dirty autosave ~900ms via provider.setPortfolio)
+  - src/components/portfolio/editor/projects-editor.tsx  (project CRUD + move up/down + featured toggle + comma tools field via splitTools, max 6)
+  Editor verification status: typecheck PASS, lint PASS, build NOT yet run -> run build first.
+Shell: use D:\nodejs\npm.cmd (npm.ps1 blocked); -LiteralPath for paths with () or []; clear .next before typecheck after file moves.
+
+CONTEXT: transforming SkillProof from text generator into editable live-portfolio platform. Guests publish WITHOUT login via portfolios.user_id=null + secret edit_token (writes through service role). Migration 0003 adds portfolios/portfolio_projects/portfolio_sections/generation_jobs (keep 0001/0002 unused). Missing Supabase tables => actions return friendly error, need user to apply 0003 in their Supabase project. AI (Groq) unconfigured => buildDemoPortfolio fallback; never fabricate metrics/clients/testimonials; dark theme tokens #0B1F3A/#122C4F/#12B5A5.
+
+NEXT STEPS (in order):
+1. Run build for the editor: `D:\nodejs\npm.cmd run build` (typecheck+lint already green). Fix anything that fails.
+2. Quick manual QA via `npm run dev`: /generate -> "Create portfolio site" button (POST /api/portfolio/generate, Demo Mode fallback) -> lands on /dashboard/portfolio/draft/edit -> edit fields -> Publish (as guest: needs migration 0003 in user's Supabase; if user's cloud DB lacks tables, surface the friendly error) -> redirected to /dashboard/portfolio/<id>/edit -> "View live" opens /p/<slug>.
+3. Commit Stage 2.2 (editor files above) and push to origin/main when user asks.
+4. Stage 3: GitHub import — GET /api/github (fetch repos server-side, no key exposed), plus 3-5 context questions; feed import + answers into portfolio generation.
+5. Stage 4: proposal + interview prep tiles generated from portfolio data (not old draft).
+6. Stage 5: a11y, fonts, README polish + full QA; then push.
+Only push when user explicitly asks. Follow AGENTS.md; do not disable working features; no payments/PDF/public Upwork integration.
