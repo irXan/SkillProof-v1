@@ -7,6 +7,7 @@ import type {
   GenerationType,
   Generations,
   OutputQuality,
+  Portfolio,
   ProfileDraft,
 } from "@/types";
 
@@ -19,12 +20,17 @@ interface SkillProofContextValue {
   quality: OutputQuality;
   isDemo: boolean;
   hasDraft: boolean;
+  /** The editable/publishable portfolio, or null before it is created. */
+  portfolio: Portfolio | null;
   setDraft: (draft: ProfileDraft) => void;
   patchDraft: (patch: Partial<ProfileDraft>) => void;
   setGeneration: (type: GenerationType, content: string) => void;
   setGenerations: (generations: Generations) => void;
   setQuality: (quality: OutputQuality) => void;
   markGenerated: () => void;
+  setPortfolio: (portfolio: Portfolio) => void;
+  patchPortfolio: (patch: Partial<Portfolio>) => void;
+  clearPortfolio: () => void;
   reset: () => void;
 }
 
@@ -49,6 +55,7 @@ export function SkillProofProvider({
   const [quality, setQualityState] = React.useState<OutputQuality>(DEFAULT_QUALITY);
   const [isDemo, setIsDemo] = React.useState(true);
   const [hasDraft, setHasDraft] = React.useState(false);
+  const [portfolio, setPortfolioState] = React.useState<Portfolio | null>(null);
 
   // Hydrate once on mount.
   React.useEffect(() => {
@@ -58,6 +65,7 @@ export function SkillProofProvider({
       setGenerationsState(stored.generations ?? {});
       setGeneratedAt(stored.generatedAt);
       if (stored.quality) setQualityState(stored.quality);
+      if (stored.portfolio) setPortfolioState(stored.portfolio);
       setIsDemo(!stored.userId);
       setHasDraft(true);
     }
@@ -73,9 +81,10 @@ export function SkillProofProvider({
       generations,
       quality,
       generatedAt,
+      portfolio,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, draft, generations, quality, generatedAt, isDemo]);
+  }, [hydrated, draft, generations, quality, generatedAt, isDemo, portfolio]);
 
   const setDraft = React.useCallback((next: ProfileDraft) => {
     setDraftState(next);
@@ -105,6 +114,18 @@ export function SkillProofProvider({
     setGeneratedAt(new Date().toISOString());
   }, []);
 
+  const setPortfolio = React.useCallback((next: Portfolio) => {
+    setPortfolioState(next);
+  }, []);
+
+  const patchPortfolio = React.useCallback((patch: Partial<Portfolio>) => {
+    setPortfolioState((prev) => (prev ? { ...prev, ...patch } : prev));
+  }, []);
+
+  const clearPortfolio = React.useCallback(() => {
+    setPortfolioState(null);
+  }, []);
+
   const reset = React.useCallback(() => {
     clearState();
     setDraftState(DEFAULT_DRAFT);
@@ -113,6 +134,7 @@ export function SkillProofProvider({
     setQualityState(DEFAULT_QUALITY);
     setHasDraft(false);
     setIsDemo(true);
+    setPortfolioState(null);
   }, []);
 
   const value: SkillProofContextValue = {
@@ -123,12 +145,16 @@ export function SkillProofProvider({
     quality,
     isDemo,
     hasDraft,
+    portfolio,
     setDraft,
     patchDraft,
     setGeneration,
     setGenerations,
     setQuality,
     markGenerated,
+    setPortfolio,
+    patchPortfolio,
+    clearPortfolio,
     reset,
   };
 

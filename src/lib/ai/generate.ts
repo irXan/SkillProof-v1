@@ -1,9 +1,9 @@
 import { generateObject, generateText, type LanguageModel } from "ai";
 import type { InterviewQuestion } from "@/types";
-import type { GenerateRequest } from "@/lib/validation";
+import type { GenerateRequest, PortfolioGenerateRequest } from "@/lib/validation";
 import { resolveModel } from "@/lib/ai/provider";
-import { SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompts";
-import { interviewSchema } from "@/lib/ai/schemas";
+import { SYSTEM_PROMPT, buildUserPrompt, buildPortfolioPrompt } from "@/lib/ai/prompts";
+import { interviewSchema, portfolioDraftSchema, type PortfolioDraftData } from "@/lib/ai/schemas";
 
 /** Hard ceiling on a single provider call so a hung request can't stall us. */
 const AI_TIMEOUT_MS = 45_000;
@@ -57,6 +57,55 @@ export async function generateContent(
       return input.type === "interview_questions"
         ? await generateInterviewQuestions(model, modelId, prompt)
         : await generateProse(model, modelId, prompt);
+    } catch (error) {
+      const friendly = toFriendlyError(error);
+      lastError = friendly;
+      if (!friendly.retryable || attempt === MAX_ATTEMPTS) {
+        throw friendly;
+      }
+      await delay(700 * attempt);
+    }
+  }
+
+  throw lastError ?? new AiGenerationError("AI generation failed. Please try again.");
+}
+
+export interface PortfolioDraftResult {
+  data: PortfolioDraftData;
+  model: string;
+}
+
+/**
+ * Generates the single structured portfolio draft with `generateObject`.
+ * Shares the same timeout / retry / friendly-error handling as prose outputs.
+ */
+export async function generatePortfolioDraft(
+  input: PortfolioGenerateRequest,
+): Promise<PortfolioDraftResult> {
+  const resolved = resolveModel();
+  if (!resolved.ok) {
+    throw new AiGenerationError(resolved.reason);
+  }
+
+  const { model, modelId } = resolved.resolved;
+  const prompt = buildPortfolioPrompt(input);
+
+  let lastError: AiGenerationError | null = null;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const { object } = await withTimeout((signal) =>
+        generateObject({
+          model,
+          system: SYSTEM_PROMPT,
+          prompt,
+          schema: portfolioDraftSchema,
+          temperature: 0.6,
+          maxTokens: 3000,
+          abortSignal: signal,
+        }),
+      );
+      return { data: object, model: modelId };
     } catch (error) {
       const friendly = toFriendlyError(error);
       lastError = friendly;

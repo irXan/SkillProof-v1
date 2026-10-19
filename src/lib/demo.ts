@@ -1,4 +1,5 @@
-import type { GenerationType, ProfileDraft, Project } from "@/types";
+import type { GenerationType, ProfileDraft, Project, Portfolio } from "@/types";
+import { DEFAULT_SECTIONS, emptyProject, splitTools } from "@/lib/portfolio";
 
 /**
  * Pre-written, honest sample outputs used in Demo Mode (and as the
@@ -149,4 +150,81 @@ function interviewQuestions(skill: string, projects: Project[]): string {
 function lowerFirst(text: string): string {
   if (!text) return text;
   return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+/**
+ * Builds an honest, structured demo portfolio from the user's own input.
+ * Used when AI is unavailable, so the full portfolio → editor → publish flow
+ * works with no API key configured.
+ */
+export function buildDemoPortfolio(
+  draft: ProfileDraft,
+): Omit<Portfolio, "id" | "slug" | "editToken" | "userId"> {
+  const name = draft.fullName?.trim() || "Your Name";
+  const skill = draft.skill || "your skill";
+  const projects: Project[] =
+    draft.projects.length > 0
+      ? draft.projects
+      : [
+          {
+            id: "demo",
+            title: `A ${skill} project`,
+            tools: skill,
+            description: "A project you built to practise your skill.",
+            problem: "A repetitive or manual task worth automating or improving.",
+            result: "Demonstrates your ability to deliver a practical solution.",
+          } as Project,
+        ];
+
+  const toolSet = new Set<string>();
+  const portfolioProjects = projects.map((project, index) => {
+    splitTools(project.tools || skill).forEach((tool) => toolSet.add(tool));
+    return {
+      ...emptyProject(index),
+      title: project.title,
+      clientType: "Small businesses",
+      problem: project.problem,
+      approach: `${project.description} Built with ${project.tools || skill}.`,
+      outcome: project.result,
+      tools: splitTools(project.tools || skill),
+      githubUrl: project.link ?? "",
+      isFeatured: index === 0,
+    };
+  });
+
+  return {
+    fullName: name,
+    headline: `${skill} freelancer who turns requirements into reliable, working results.`,
+    bio: `I'm ${name}, a ${skill} freelancer focused on practical, real-world work. My recent project, ${projects[0].title}, ${lowerFirst(projects[0].result)} I care about clear communication and dependable delivery, and I let the work speak: I describe what I built, the tools I used, and how it helps.`,
+    location: "",
+    email: "",
+    githubUrl: draft.githubUrl ?? "",
+    linkedinUrl: "",
+    websiteUrl: draft.portfolioUrl ?? "",
+    resumeUrl: "",
+    skills: Array.from(toolSet).slice(0, 12),
+    services: [
+      {
+        title: `${skill} deliverables`,
+        description: "Building and polishing deliverables from a clear brief.",
+      },
+      {
+        title: "Process automation",
+        description: "Turning a manual, repetitive process into a faster, repeatable one.",
+      },
+      {
+        title: "Clean, maintainable work",
+        description: "Writing documented work that's easy to maintain and extend.",
+      },
+      {
+        title: "Reliable communication",
+        description: "Sharing progress clearly and adjusting to your feedback.",
+      },
+    ],
+    contactCta: "Have a project in mind? Send me a message and I'll reply with how I'd approach it.",
+    theme: "aurora",
+    isPublished: false,
+    projects: portfolioProjects,
+    sections: DEFAULT_SECTIONS.map((section) => ({ ...section })),
+  };
 }

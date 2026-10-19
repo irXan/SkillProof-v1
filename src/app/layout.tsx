@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SkillProofProvider } from "@/components/providers/skillproof-provider";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -31,11 +29,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="min-h-screen bg-background font-sans text-foreground">
         <SkillProofProvider>
-          <div className="flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </div>
+          {children}
           <Toaster />
         </SkillProofProvider>
       </body>

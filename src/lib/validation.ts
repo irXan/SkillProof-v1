@@ -88,3 +88,20 @@ export const generateRequestSchema = z.object({
 });
 
 export type GenerateRequest = z.infer<typeof generateRequestSchema>;
+
+/** Request body accepted by POST /api/portfolio/generate. */
+export const portfolioGenerateSchema = z.object({
+  profile: z.object({
+    fullName: z.string().trim().min(1).max(80),
+    skill: skillEnum,
+    githubUrl: z.string().trim().max(500).optional(),
+    portfolioUrl: z.string().trim().max(500).optional(),
+  }),
+  projects: z.array(projectSchema).min(1).max(MAX_PROJECTS),
+  /** Optional client type the freelancer is targeting (steers the copy). */
+  targetClient: z.string().trim().max(120).optional(),
+  /** Optional free-text notes the freelancer wants reflected. */
+  notes: z.string().trim().max(2000).optional(),
+});
+
+export type PortfolioGenerateRequest = z.infer<typeof portfolioGenerateSchema>;

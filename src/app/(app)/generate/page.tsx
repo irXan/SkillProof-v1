@@ -30,10 +30,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  GenerationCard,
-  type GenerationStatus,
-} from "@/components/generation-card";
+import { GenerationCard, type GenerationStatus } from "@/components/generation-card";
+import { CreatePortfolioButton } from "@/components/create-portfolio-button";
 import { useSkillProof } from "@/components/providers/skillproof-provider";
 import {
   createSampleDraft,
@@ -270,12 +268,7 @@ export default function GeneratePage() {
             {anyLoading ? <Loader2 className="animate-spin" /> : <Wand2 />}
             Generate all
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/portfolio">
-              Preview portfolio
-              <ArrowRight />
-            </Link>
-          </Button>
+          <CreatePortfolioButton />
         </div>
       </div>
 

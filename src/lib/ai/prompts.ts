@@ -1,5 +1,5 @@
 import type { GenerationType } from "@/types";
-import type { GenerateRequest } from "@/lib/validation";
+import type { GenerateRequest, PortfolioGenerateRequest } from "@/lib/validation";
 
 /**
  * Master system prompt. Every generation shares the same voice and the same
@@ -112,4 +112,82 @@ export function buildUserPrompt(input: GenerateRequest): string {
   }
 
   return sections.join("\n");
+}
+
+/** Shared context formatter reused by the structured portfolio prompt. */
+function formatPortfolioContext(input: PortfolioGenerateRequest): string {
+  const { profile, projects } = input;
+
+  const projectBlocks = projects
+    .map((project, index) => {
+      const lines = [
+        `Project ${index + 1}: ${project.title}`,
+        `Tools/technologies: ${project.tools}`,
+        `What was built: ${project.description}`,
+        `Problem it solves: ${project.problem}`,
+        `Result / purpose: ${project.result}`,
+      ];
+      if (project.link) lines.push(`Link: ${project.link}`);
+      return lines.join("\n");
+    })
+    .join("\n\n");
+
+  const links = [
+    profile.githubUrl ? `GitHub: ${profile.githubUrl}` : null,
+    profile.portfolioUrl ? `Portfolio: ${profile.portfolioUrl}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return [
+    `Freelancer name: ${profile.fullName}`,
+    `Primary skill: ${profile.skill}`,
+    input.targetClient ? `Target client type: ${input.targetClient}` : "",
+    links ? `Links:\n${links}` : "",
+    input.notes ? `Additional notes from the freelancer:\n${input.notes}` : "",
+    "",
+    "Projects:",
+    projectBlocks,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+/**
+ * Builds the prompt for the single structured portfolio generation. The model
+ * must return JSON matching `portfolioDraftSchema`.
+ */
+export function buildPortfolioPrompt(input: PortfolioGenerateRequest): string {
+  return [
+    formatPortfolioContext(input),
+    "",
+    `TASK:
+Write a complete, client-facing portfolio for this freelancer as structured JSON.
+Return ONLY JSON (no markdown fence, no commentary) with exactly this shape:
+
+{
+  "headline": "a short professional headline (5-12 words) naming the skill and client outcome",
+  "bio": "a 90-140 word first-person bio describing focus, the work they do, and their tools. No invented years of experience or clients.",
+  "skills": ["6-12 concrete skills, derived from the projects and skill above"],
+  "services": [{"title": "short service name", "description": "one sentence on the client outcome"}],
+  "contactCta": "one friendly sentence inviting the client to get in touch",
+  "projects": [
+    {
+      "title": "the project title",
+      "clientType": "who this kind of work is for, e.g. small businesses",
+      "problem": "the real problem the project addresses",
+      "approach": "the concrete deliverable and tools, in plain English",
+      "outcome": "an honest outcome/purpose statement — qualitative if no metric was provided",
+      "tools": ["the", "tools", "used"]
+    }
+  ]
+}
+
+Rules:
+- Produce exactly one project entry for EACH project listed above, in the same order.
+- 4-6 services that a client would actually buy, grounded in the projects.
+- NEVER invent metrics, revenue, client names, testimonials, certifications, or employment history.
+- If no measurable result was given, describe the demonstrated ability qualitatively.
+- No buzzwords (passionate, dynamic, cutting-edge, results-driven).`,
+  ].join("\n");
 }
